@@ -1,6 +1,9 @@
 import {base64UrlToString, stringToBase64Url} from "@popovmp/base64";
 import {encodeSha256}                         from "@popovmp/sha256";
 
+/** @type {string} */
+const JWT_HEADER = stringToBase64Url(JSON.stringify({typ: "JWT", alg: "HS256"}));
+
 /**
  * Create a JWT
  * @param {Record<string, any>} payload
@@ -8,9 +11,8 @@ import {encodeSha256}                         from "@popovmp/sha256";
  * @returns {Promise<string>}
  */
 export async function createJwt(payload, key) {
-    const headerBase64Url  = stringToBase64Url(JSON.stringify({typ: "JWT", alg: "HS256"}));
     const payloadBase64Url = stringToBase64Url(JSON.stringify(payload));
-    const headerPayload    = `${headerBase64Url}.${payloadBase64Url}`;
+    const headerPayload    = `${JWT_HEADER}.${payloadBase64Url}`;
     const encodedSignature = await encodeSha256(headerPayload, key);
     return `${headerPayload}.${encodedSignature}`;
 }
@@ -22,32 +24,29 @@ export async function createJwt(payload, key) {
  */
 export function isTokenJwt(authorization) {
     if (!authorization) return false;
-    if (!authorization.startsWith("Bearer ")) return false;
+
+    const bearerJwtHeader = `Bearer ${JWT_HEADER}.`;
+    if (!authorization.startsWith(bearerJwtHeader)) return false;
 
     /** @type {string} */
-    const jwt = authorization.slice(7);
+    const jwtPayloadSignature = authorization.slice(bearerJwtHeader.length);
 
     /** @type {number} */
-    const firstDotIndex = jwt.indexOf(".");
-    if (firstDotIndex === -1) return false;
-
-    /** @type {number} */
-    const lastDotIndex  = jwt.lastIndexOf(".");
-    if (lastDotIndex === -1) return false;
+    const dotIndex  = jwtPayloadSignature.indexOf(".");
+    if (dotIndex === -1) return false;
 
     /** @type {string} */
-    const headerBase64Url = jwt.slice(0, firstDotIndex);
-
-    /** @type {string} */
-    const headerText = base64UrlToString(headerBase64Url);
-    if (!headerText.includes("JWT")) return false;
-
-    /** @type {string} */
-    const payloadBase64Url = jwt.slice(firstDotIndex + 1, lastDotIndex);
+    const payloadBase64Url = jwtPayloadSignature.slice(0, dotIndex);
 
     /** @type {string} */
     const payloadText = base64UrlToString(payloadBase64Url);
-    return !!payloadText && payloadText.includes("iss") && payloadText.includes("aud");
+    return !!payloadText &&
+        payloadText.startsWith("{") &&
+        payloadText.includes("iss") &&
+        payloadText.includes("aud") &&
+        payloadText.includes("exp") &&
+        payloadText.includes("sub") &&
+        payloadText.endsWith("}");
 }
 
 /**
@@ -59,7 +58,10 @@ export function isTokenJwt(authorization) {
 export async function validateJwt(jwt, key) {
     const lastDotIndex = jwt.lastIndexOf(".");
     if (lastDotIndex === -1) return false;
+
+    /** @type {string} */
     const hmac = await encodeSha256(jwt.slice(0, lastDotIndex), key);
+
     return hmac === jwt.slice(lastDotIndex + 1);
 }
 
@@ -69,9 +71,14 @@ export async function validateJwt(jwt, key) {
  * @returns {any}
  */
 export function getPayloadJwt(jwt) {
-    const firstDotIndex    = jwt.indexOf(".");
-    const lastDotIndex     = jwt.lastIndexOf(".");
-    const payloadBase64Url = jwt.slice(firstDotIndex + 1, lastDotIndex);
-    const payloadText      = base64UrlToString(payloadBase64Url);
+    const lastDotIndex = jwt.lastIndexOf(".");
+    if (lastDotIndex === -1) return undefined;
+
+    /** @type {string} */
+    const payloadBase64Url = jwt.slice(JWT_HEADER.length + 1, lastDotIndex);
+
+    /** @type {string} */
+    const payloadText = base64UrlToString(payloadBase64Url);
+
     return JSON.parse(payloadText);
 }
