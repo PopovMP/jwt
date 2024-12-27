@@ -1,0 +1,26 @@
+{
+  "name": "@popovmp/jwt",
+  "version": "1.0.0",
+  "description": "JWT helpers for NodeJS",
+  "main": "index.mjs",
+  "type": "module",
+  "license": "MIT",
+  "dependencies": {
+    "@popovmp/base64": "^1.0.1",
+    "@popovmp/sha256": "^1.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:PopovMP/jwt.git"
+  },
+  "scripts": {
+    "eslint": "eslint",
+    "test": "node --test",
+    "prepublishOnly": "node --test",
+    "publishPackage": "npm publish --access=public"
+  }
+}
