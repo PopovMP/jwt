@@ -1,6 +1,6 @@
 {
   "name": "@popovmp/jwt",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "JWT helpers for NodeJS",
   "main": "index.mjs",
   "type": "module",

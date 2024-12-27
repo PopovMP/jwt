@@ -3,7 +3,7 @@
 import {describe, it} from "node:test";
 import {strictEqual}  from "node:assert";
 
-import {createJwt, getPayloadJwt, validateJwt} from "../index.mjs";
+import {createJwt, getPayloadJwt, isTokenJwt, validateJwt} from "../index.mjs";
 
 describe("jwt", () => {
     describe("createJwt", () => {
@@ -45,6 +45,54 @@ describe("jwt", () => {
         strictEqual(actual, expected);
     });
 
+    describe("isTokenJwt", () => {
+        it("recognises a valid token", async () => {
+            const payload = {
+                "iss": "forexsb.com",
+                "iat": 1725540872,
+                "exp": 1757076872,
+                "aud": "forexsb.com",
+                "sub": "jrocket@example.com",
+            };
+            const key    = "1234";
+            const jwt    = await createJwt(payload, key);
+            const auth   = `Bearer ${jwt}`;
+            const actual = isTokenJwt(auth);
+            strictEqual(actual, true);
+        });
+        it("No Bearer", async () => {
+            const payload = {
+                "iss": "forexsb.com",
+                "iat": 1725540872,
+                "exp": 1757076872,
+                "aud": "forexsb.com",
+                "sub": "jrocket@example.com",
+            };
+            const key    = "1234";
+            const jwt    = await createJwt(payload, key);
+            const auth   = `Token ${jwt}`;
+            const actual = isTokenJwt(auth);
+            strictEqual(actual, false);
+        });
+        it("No token", async () => {
+            const auth   = "Bearer abc.def.123";
+            const actual = isTokenJwt(auth);
+            strictEqual(actual, false);
+        });
+        it("No iss", async () => {
+            const payload = {
+                "iat": 1725540872,
+                "exp": 1757076872,
+                "aud": "forexsb.com",
+                "sub": "jrocket@example.com",
+            };
+            const key    = "1234";
+            const jwt    = await createJwt(payload, key);
+            const auth   = `Bearer ${jwt}`;
+            const actual = isTokenJwt(auth);
+            strictEqual(actual, false);
+        });
+    });
     describe("validateJWT", () => {
         it("validate a JWT", async () => {
             const jwt    = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9." +

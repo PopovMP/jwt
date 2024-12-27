@@ -16,6 +16,41 @@ export async function createJwt(payload, key) {
 }
 
 /**
+ * Checks if the Authorization header contains a JWT token
+ * @param {string|undefined}  authorization - The Authorization header
+ * @returns {boolean}
+ */
+export function isTokenJwt(authorization) {
+    if (!authorization) return false;
+    if (!authorization.startsWith("Bearer ")) return false;
+
+    /** @type {string} */
+    const jwt = authorization.slice(7);
+
+    /** @type {number} */
+    const firstDotIndex = jwt.indexOf(".");
+    if (firstDotIndex === -1) return false;
+
+    /** @type {number} */
+    const lastDotIndex  = jwt.lastIndexOf(".");
+    if (lastDotIndex === -1) return false;
+
+    /** @type {string} */
+    const headerBase64Url = jwt.slice(0, firstDotIndex);
+
+    /** @type {string} */
+    const headerText = base64UrlToString(headerBase64Url);
+    if (!headerText.includes("JWT")) return false;
+
+    /** @type {string} */
+    const payloadBase64Url = jwt.slice(firstDotIndex + 1, lastDotIndex);
+
+    /** @type {string} */
+    const payloadText = base64UrlToString(payloadBase64Url);
+    return !!payloadText && payloadText.includes("iss") && payloadText.includes("aud");
+}
+
+/**
  * Validate JWT signature
  * @param {string} jwt
  * @param {string} key
