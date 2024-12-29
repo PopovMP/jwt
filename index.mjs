@@ -40,13 +40,7 @@ export function isTokenJwt(authorization) {
 
     /** @type {string} */
     const payloadText = base64UrlToString(payloadBase64Url);
-    return !!payloadText &&
-        payloadText.startsWith("{") &&
-        payloadText.includes("iss") &&
-        payloadText.includes("aud") &&
-        payloadText.includes("exp") &&
-        payloadText.includes("sub") &&
-        payloadText.endsWith("}");
+    return !!payloadText && payloadText.startsWith("{") && payloadText.endsWith("}");
 }
 
 /**
