@@ -1,9 +1,9 @@
 // noinspection SpellCheckingInspection
 
-import {describe, it} from "node:test";
-import {strictEqual}  from "node:assert";
+import {describe, it}                  from "node:test";
+import {strictEqual, deepStrictEqual}  from "node:assert";
 
-import {createJwt, getPayloadJwt, isTokenJwt, validateJwt} from "../index.mjs";
+import {createJwt, getPayloadJwt, isTokenJwt, validateJwt, parseJwtPayload} from "../index.mjs";
 
 describe("jwt", () => {
     describe("createJwt", () => {
@@ -105,6 +105,26 @@ describe("jwt", () => {
                 "sub": "info@forexsb.com",
             };
             strictEqual(JSON.stringify(actual), JSON.stringify(expected));
+        });
+    });
+
+    describe("parseJwtPayload", () => {
+        it("get the payload from a JWT", async () => {
+            const expected = {
+                "iat": 1725540872,
+                "exp": 1757076872,
+                "sub": "info@forexsb.com",
+                "iss": "forexsb.com",
+                "aud": "forexsb.com/ea-studio",
+            };
+
+            const jwtConfig = {key: "1234", iss: "forexsb.com", aud: "forexsb.com/ea-studio"};
+
+            const jwt           = await createJwt(expected, jwtConfig.key);
+            const authorization = `Bearer ${jwt}`;
+            const actual        = await parseJwtPayload(authorization, jwtConfig);
+
+            deepStrictEqual(actual, expected);
         });
     });
 });

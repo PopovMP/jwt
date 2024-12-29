@@ -24,4 +24,9 @@ const isValid = await validateJwt(jwt, key);
 
 // Gets the JWT payload
 const payload = getPayloadJwt(jwt);
+
+// Parse Authorization header
+const header = "Bearer " + jwt;
+const settings = {key: "1234", iss: "example.com", aud: "John"};
+const payload = parseJwtPayload(header, settings);
 ```

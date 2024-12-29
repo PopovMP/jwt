@@ -76,3 +76,39 @@ export function getPayloadJwt(jwt) {
 
     return JSON.parse(payloadText);
 }
+
+/**
+ * Validates a JWT and returns the payload if it is valid.
+ * Throws an error with a message "Unauthorized" otherwise.
+ * @param {string|undefined }                       authorization - The Authorization header
+ * @param {{key: string, iss: string, aud: string}} jwtConfig
+ * @returns {Promise<any|undefined>}
+ * @throws {Error}
+ */
+export async function parseJwtPayload(authorization, jwtConfig) {
+    if (!authorization || !isTokenJwt(authorization)) return undefined;
+
+    /** @type {string} */
+    const jwt = authorization.split(" ")[1];
+
+    // Check if the JWT is valid
+    const isValid = await validateJwt(jwt, jwtConfig.key);
+    if (!isValid) {
+        throw new Error("Unauthorized - the JWT is invalid");
+    }
+
+    /** @type {any} */
+    const payload = getPayloadJwt(jwt);
+
+    // Check if the JWT is expired
+    if (Math.floor(Date.now() / 1000) > payload.exp) {
+        throw new Error("Unauthorized - the JWT is expired");
+    }
+
+    // Check if the JWT has the correct credentials
+    if (payload.iss !== jwtConfig.iss || payload.aud !== jwtConfig.aud) {
+        throw new Error("Unauthorized - the JWT has the wrong issuer or audience");
+    }
+
+    return payload;
+}
