@@ -1,24 +1,28 @@
 {
   "name": "@popovmp/jwt",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "JWT helpers for NodeJS",
   "main": "index.mjs",
   "type": "module",
+  "types": "types/index.d.ts",
   "license": "MIT",
   "dependencies": {
-    "@popovmp/base64": "^1.0.1",
-    "@popovmp/sha256": "^1.0.0"
+    "@popovmp/base64": "^1.0.3",
+    "@popovmp/sha256": "^1.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
-    "eslint": "^9.17.0"
+    "@types/node": "^22.10.2",
+    "eslint": "^9.17.0",
+    "typescript": "^5.7.2"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:PopovMP/jwt.git"
   },
   "scripts": {
-    "eslint": "eslint",
+    "check": "tsc",
+    "lint": "eslint",
     "test": "node --test",
     "prepublishOnly": "node --test",
     "publishPackage": "npm publish --access=public"
